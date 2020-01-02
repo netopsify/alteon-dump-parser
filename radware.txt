@@ -1,0 +1,26 @@
+4: IP4 1.4.222.10,   00:03:b2:78:08:05, vname xys_VIP22
+    Virtual Services:
+    2233: rport 2233, group 5, xys_2233-UDP, health tcp (TCP), UDP, pbind clientip norport, epip
+        Real Servers:
+        3: 1.4.222.41, PSAIVEQA1, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+        4: 1.4.222.36, PSAIVEQA2, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+5: IP4 1.4.222.16,   00:03:b2:78:08:06, vname PerkanyQA_VIP1
+    Virtual Services:
+    https: rport https, group 6, PerkanyQA_HTTPS, health tcp (TCP), pbind clientip norport, hname PerkanyQA
+        Real Servers:
+        5: 1.4.222.39, PaxyQA1, group ena, health  (runtime TCP), 0 ms, UP
+        6: 1.4.222.40, PaxyQA2, group ena, health  (runtime TCP), 0 ms, UP
+6: IP4 1.4.222.16,   00:03:b2:78:08:06, vname PerkanyQA_VIP2
+    Virtual Services:
+    2233: rport 2233, group 7, PerkanyQA_2233-UDP, health tcp (TCP), UDP, pbind clientip norport
+        Real Servers:
+        5: 1.4.222.39, PaxyQA1, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+        6: 1.4.222.40, PaxyQA2, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+    500: rport 500, group 8, PerkanyQA_500-UDP, health tcp (TCP), UDP, pbind clientip norport
+        Real Servers:
+        5: 1.4.222.39, PaxyQA1, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+        6: 1.4.222.40, PaxyQA2, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+    4500: rport 4500, group 9, PerkanyQA_4500-UDP, health tcp (TCP), UDP, pbind clientip norport
+        Real Servers:
+        5: 1.4.222.39, PaxyQA1, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP
+        6: 1.4.222.40, PaxyQA2, group ena, health  (internal port for runtime ICMP health check), 0 ms, UP

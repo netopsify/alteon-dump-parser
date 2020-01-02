@@ -1,0 +1,10 @@
+ID,VIP,VIP_Name,Status(UP/DOWN),Virtual_port,Real_Server_port,Backend_Server_IP,Backend_Server_Name
+{% for item in vip_facts %}
+{% for key, value in item.items() %}
+{% for key1, value1 in value.virtual_ports.items() %}
+{% for rserv in value1.rserver %}
+{{ value.vip_instance }},{{ key }},{{ value.vname }},{{ value.vip_state }},{{ key1 }},{{ value1.rport }},{{ rserv.rserver_ip }},{{ rserv.rserver_name }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}

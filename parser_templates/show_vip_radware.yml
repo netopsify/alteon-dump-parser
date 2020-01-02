@@ -1,0 +1,123 @@
+---
+- name: parser meta data
+  parser_metadata:
+    version: 1.0
+    command: show configuration
+    network_os: alteon
+
+- name: match sections
+  pattern_match:
+    regex: "\\s\\s\\d+:\\sIP4\\s(\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b).*"
+    match_all: yes
+    match_greedy: yes
+  register: vip_section
+  export: yes
+
+- name: match interface values
+  pattern_group:
+    - name: match VIP Instance
+      pattern_match:
+        regex: "^\\s+(\\d+):\\sIP4\\s(\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b).*"
+        content: "{{ item }}"
+      register: vip_instance
+
+    - name: match mac
+      pattern_match:
+        regex: ",\\s+(\\w+?\\.\\w+?\\.\\w+?|\\w+?\\:\\w+?\\:\\w+?\\:\\w+?\\:\\w+?\\:\\w+?)"
+        content: "{{ item }}"
+      register: vip_mac
+
+    - name: match vname
+      pattern_match:
+        regex: ".+,\\svname(.*)"
+        content: "{{ item }}"
+      register: vname
+
+    - name: match vip state
+      pattern_match:
+        regex: ".+,\\s(NO SERVICES UP)"
+        content: "{{ item }}"
+      register: vip_state
+
+##############################################################
+
+    # - name: match virtual port
+    #   pattern_match:
+    #     regex: "\\s+(\\S+): rport"
+    #     content: "{{ item }}"
+    #   register: vport
+
+    # - name: match real port
+    #   pattern_match:
+    #     regex: " rport\\s(\\S+), group "
+    #     content: "{{ item }}"
+    #   register: rport
+
+    # - name: match virtual port group
+    #   pattern_match:
+    #     regex: " group\\s(\\d+)"
+    #     content: "{{ item }}"
+    #   register: vport_group
+
+##### The above can be expressed using below format too.
+    - name: match virtual port details
+      pattern_match:
+        regex: "\\s+(?P<vport>\\S+): rport\\s(?P<rport>\\S+) group\\s(?P<vport_group>\\d+)"
+        content: "{{ item }}"
+        match_all: yes
+      register: vport_details
+
+##############################################################
+    - name: match virtual port details
+      pattern_match:
+        regex: "\\s+(?P<vport>\\S+): rport\\s(?P<rport>\\S+) group\\s(?P<vport_group>\\d+)"
+        content: "{{ item }}"
+        match_greedy: yes
+        match_all: yes
+      register: vport_details_section
+
+  loop: "{{ vip_section }}"
+  register: vips_values
+  export: yes
+
+- name: export system facts to playbook
+  set_vars:
+    "{{ item.vip_instance.matches.1 }}":
+      vip_state: "{{ item.vip_state.matches.0 }}"
+      vip_instance: "{{ item.vip_instance.matches.0 }}"
+      vip_ip: "{{ item.vip_instance.matches.1 }}"
+      vip_mac: "{{ item.vip_mac.matches.0 }}"
+      vname: "{{ item.vname.matches.0 | trim | regex_replace('(,.*)','') }}"
+      virtual_ports: "{{ item.vport_details_section | rservers_filter }}"
+      # virtual_ports: "{{ item.vport_details_section }}"
+  loop: "{{ vips_values }}"
+  export: yes
+  register: vip_facts
+
+
+# - name: generate json data structure
+#   json_template:
+#     template:
+#       - key: "{{ item.vip_instance.matches.1 }}"
+#         object:
+#           - key: vip_instance
+#             value: "{{ item.vip_instance.matches.0 }}"
+#           - key: vip_ip
+#             value: "{{ item.vip_instance.matches.1 }}"
+#           - key: vip_mac
+#             value: "{{ item.vip_mac.matches.0 }}"
+#           - key: vname
+#             value: "{{ item.vname.matches.0 }}"
+#           - key: virtual_ports
+#             lines:
+#               - key: virtual_port
+#                 value: "{{ item.vport_details.vport }}"
+#               - key: rport
+#                 value: "{{ item.vport_details.rport }}"
+#               - key: group
+#                 value: "{{ item.vport_details.vport_group }}"
+#   loop: "{{ vips_values }}"
+#   export: True
+#   export_as: dict
+#   extend: radware_vips_facts
+#   register: vip_facts
